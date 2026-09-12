@@ -15,25 +15,9 @@ void main() {
       expect(graphQLTypeName('ProductInput', isInput: true), 'ProductInput');
     });
 
-    test('drops the first configured prefix', () {
-      expect(
-        graphQLTypeName('BmcProduct', isInput: false, stripPrefixes: ['Bmc']),
-        'Product',
-      );
-    });
-
-    test('keeps a name that is nothing but the prefix', () {
-      expect(
-        graphQLTypeName('Bmc', isInput: false, stripPrefixes: ['Bmc']),
-        'Bmc',
-      );
-    });
-
-    test('honours an empty suffix', () {
-      expect(
-        graphQLTypeName('Product', isInput: true, inputSuffix: ''),
-        'Product',
-      );
+    test('keeps a prefixed class name as it is written', () {
+      expect(graphQLTypeName('AcmeProduct', isInput: false), 'AcmeProduct');
+      expect(graphQLTypeName('AcmeProduct', isInput: true), 'AcmeProductInput');
     });
   });
 

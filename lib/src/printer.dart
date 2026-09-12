@@ -115,10 +115,11 @@ String _printScalar(SdlScalar scalar) {
   final url = scalar.specifiedByUrl;
   final specifiedBy = url == null
       ? ''
-      : ' @specifiedBy(url: ${_printString(url)})';
+      : ' @specifiedBy(url: ${printStringLiteral(url)})';
 
   return '${_printDescription(scalar.description)}'
-      'scalar ${scalar.name}$specifiedBy';
+      'scalar ${scalar.name}$specifiedBy'
+      '${_printAppliedDirectives(scalar.directives)}';
 }
 
 String _printEnum(SdlEnum type) {
@@ -128,7 +129,8 @@ String _printEnum(SdlEnum type) {
   ];
 
   return '${_printDescription(type.description)}'
-      'enum ${type.name}${_printBlock(values)}';
+      'enum ${type.name}${_printAppliedDirectives(type.directives)}'
+      '${_printBlock(values)}';
 }
 
 String _printEnumValue(SdlEnumValue value, {required bool firstInBlock}) {
@@ -139,16 +141,19 @@ String _printEnumValue(SdlEnumValue value, {required bool firstInBlock}) {
   );
 
   return '$description  ${value.name}'
-      '${_printDeprecated(value.deprecationReason)}';
+      '${_printDeprecated(value.deprecationReason)}'
+      '${_printAppliedDirectives(value.directives)}';
 }
 
 String _printUnion(SdlUnion type) {
   final members = type.members.isEmpty ? '' : ' = ${type.members.join(' | ')}';
-  return '${_printDescription(type.description)}union ${type.name}$members';
+  return '${_printDescription(type.description)}union ${type.name}'
+      '${_printAppliedDirectives(type.directives)}$members';
 }
 
 String _printInputObject(SdlInputObject type) =>
     '${_printDescription(type.description)}input ${type.name}'
+    '${_printAppliedDirectives(type.directives)}'
     '${_printBlock(_printInputFields(type.fields))}';
 
 String _printObject(SdlObject type) {
@@ -159,6 +164,7 @@ String _printObject(SdlObject type) {
 
   return '${_printDescription(type.description)}'
       '$keyword ${type.name}$implemented'
+      '${_printAppliedDirectives(type.directives)}'
       '${_printBlock(_printFields(type.fields))}';
 }
 
@@ -176,7 +182,8 @@ String _printField(SdlField field, {required bool firstInBlock}) {
 
   return '$description  ${field.name}'
       '${_printArguments(field.arguments, '  ')}: ${printTypeRef(field.type)}'
-      '${_printDeprecated(field.deprecationReason)}';
+      '${_printDeprecated(field.deprecationReason)}'
+      '${_printAppliedDirectives(field.directives)}';
 }
 
 List<String> _printInputFields(List<SdlField> fields) => [
@@ -193,7 +200,8 @@ String _printInputField(SdlField field, {required bool firstInBlock}) {
 
   return '$description  '
       '${_printInputValue(field.name, field.type, field.defaultValue)}'
-      '${_printDeprecated(field.deprecationReason)}';
+      '${_printDeprecated(field.deprecationReason)}'
+      '${_printAppliedDirectives(field.directives)}';
 }
 
 String _printDirective(SdlDirective directive) {
@@ -212,9 +220,7 @@ String _printArguments(List<SdlArgument> arguments, String indentation) {
   if (arguments.isEmpty) return '';
 
   if (arguments.every((a) => a.description == null)) {
-    final printed = arguments
-        .map((a) => _printInputValue(a.name, a.type, a.defaultValue))
-        .join(', ');
+    final printed = arguments.map(_printArgument).join(', ');
     return '($printed)';
   }
 
@@ -237,8 +243,26 @@ String _printDescribedArgument(
     firstInBlock: firstInBlock,
   );
 
-  return '$description$indentation  '
-      '${_printInputValue(argument.name, argument.type, argument.defaultValue)}';
+  return '$description$indentation  ${_printArgument(argument)}';
+}
+
+String _printArgument(SdlArgument argument) =>
+    '${_printInputValue(argument.name, argument.type, argument.defaultValue)}'
+    '${_printAppliedDirectives(argument.directives)}';
+
+/// The directives applied at one place, each preceded by a space.
+String _printAppliedDirectives(List<SdlAppliedDirective> directives) =>
+    directives.isEmpty
+    ? ''
+    : ' ${directives.map(_printAppliedDirective).join(' ')}';
+
+String _printAppliedDirective(SdlAppliedDirective directive) {
+  if (directive.arguments.isEmpty) return '@${directive.name}';
+
+  final printed = directive.arguments
+      .map((a) => '${a.name}: ${a.value}')
+      .join(', ');
+  return '@${directive.name}($printed)';
 }
 
 String _printInputValue(String name, SdlTypeRef type, String? defaultValue) {
@@ -249,7 +273,7 @@ String _printInputValue(String name, SdlTypeRef type, String? defaultValue) {
 String _printDeprecated(String? reason) {
   if (reason == null) return '';
   if (reason == defaultDeprecationReason) return ' @deprecated';
-  return ' @deprecated(reason: ${_printString(reason)})';
+  return ' @deprecated(reason: ${printStringLiteral(reason)})';
 }
 
 /// A block of members, or nothing at all when there are none.
@@ -323,8 +347,8 @@ String printBlockString(String value) {
 
 bool _isWhitespace(int code) => code == 0x9 || code == 0x20;
 
-/// Prints [value] as a GraphQL string literal.
-String _printString(String value) {
+/// Prints [value] as a GraphQL string literal, quotes and escapes included.
+String printStringLiteral(String value) {
   final buffer = StringBuffer('"');
   for (final rune in value.runes) {
     buffer.write(switch (rune) {

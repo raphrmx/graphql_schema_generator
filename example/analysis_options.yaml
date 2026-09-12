@@ -1,7 +1,1 @@
 include: package:lint/strict.yaml
-
-# The json_serializable parts are formatted and written by that package, and
-# this example neither edits them nor commits them.
-analyzer:
-  exclude:
-    - lib/**.g.dart

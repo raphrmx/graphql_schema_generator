@@ -48,6 +48,30 @@ class SdlNonNullType extends SdlTypeRef {
   String get baseName => of.baseName;
 }
 
+/// A value given to an argument where a directive is applied.
+class SdlArgumentValue {
+  /// The name of the argument.
+  final String name;
+
+  /// The value, already written as an SDL literal.
+  final String value;
+
+  const SdlArgumentValue({required this.name, required this.value});
+}
+
+/// A directive applied somewhere, as opposed to the [SdlDirective] that
+/// declares it.
+class SdlAppliedDirective {
+  /// The name of the directive, without the leading `@`.
+  final String name;
+
+  /// The values given to the arguments, in the order the declaration states
+  /// them.
+  final List<SdlArgumentValue> arguments;
+
+  const SdlAppliedDirective({required this.name, this.arguments = const []});
+}
+
 /// An argument of a field, or of a directive.
 class SdlArgument {
   /// The name of the argument.
@@ -63,11 +87,15 @@ class SdlArgument {
   /// argument has none.
   final String? defaultValue;
 
+  /// The directives applied here.
+  final List<SdlAppliedDirective> directives;
+
   const SdlArgument({
     required this.name,
     required this.type,
     this.description,
     this.defaultValue,
+    this.directives = const [],
   });
 }
 
@@ -92,6 +120,9 @@ class SdlField {
   /// The default value of an input field, already written as an SDL literal.
   final String? defaultValue;
 
+  /// The directives applied here.
+  final List<SdlAppliedDirective> directives;
+
   const SdlField({
     required this.name,
     required this.type,
@@ -99,6 +130,7 @@ class SdlField {
     this.deprecationReason,
     this.arguments = const [],
     this.defaultValue,
+    this.directives = const [],
   });
 }
 
@@ -113,10 +145,14 @@ class SdlEnumValue {
   /// The reason the value is deprecated, or null when it is not.
   final String? deprecationReason;
 
+  /// The directives applied here.
+  final List<SdlAppliedDirective> directives;
+
   const SdlEnumValue({
     required this.name,
     this.description,
     this.deprecationReason,
+    this.directives = const [],
   });
 }
 
@@ -128,7 +164,14 @@ sealed class SdlDefinition {
   /// The description, or null when the source carries none.
   final String? description;
 
-  const SdlDefinition({required this.name, this.description});
+  /// The directives applied here.
+  final List<SdlAppliedDirective> directives;
+
+  const SdlDefinition({
+    required this.name,
+    this.description,
+    this.directives = const [],
+  });
 }
 
 /// An object type, or an interface when [isInterface] is set.
@@ -145,6 +188,7 @@ class SdlObject extends SdlDefinition {
   const SdlObject({
     required super.name,
     super.description,
+    super.directives,
     this.isInterface = false,
     this.interfaces = const [],
     this.fields = const [],
@@ -159,6 +203,7 @@ class SdlInputObject extends SdlDefinition {
   const SdlInputObject({
     required super.name,
     super.description,
+    super.directives,
     this.fields = const [],
   });
 }
@@ -171,6 +216,7 @@ class SdlEnum extends SdlDefinition {
   const SdlEnum({
     required super.name,
     super.description,
+    super.directives,
     this.values = const [],
   });
 }
@@ -183,6 +229,7 @@ class SdlUnion extends SdlDefinition {
   const SdlUnion({
     required super.name,
     super.description,
+    super.directives,
     this.members = const [],
   });
 }
@@ -196,6 +243,7 @@ class SdlScalar extends SdlDefinition {
   const SdlScalar({
     required super.name,
     super.description,
+    super.directives,
     this.specifiedByUrl,
   });
 }
@@ -254,6 +302,26 @@ class SdlSchema {
     this.directives = const [],
     this.definitions = const [],
   });
+
+  /// The interfaces no object type in the schema implements.
+  ///
+  /// A field answering with one of these could never resolve: an answer is an
+  /// object type, and none of them carries the interface.
+  List<String> get unimplementedInterfaces {
+    final implemented = <String>{
+      for (final definition in definitions)
+        if (definition is SdlObject && !definition.isInterface)
+          ...definition.interfaces,
+    };
+
+    return [
+      for (final definition in definitions)
+        if (definition is SdlObject &&
+            definition.isInterface &&
+            !implemented.contains(definition.name))
+          definition.name,
+    ];
+  }
 
   /// The definition named [name], or null when the schema holds none.
   SdlDefinition? definitionNamed(String name) =>

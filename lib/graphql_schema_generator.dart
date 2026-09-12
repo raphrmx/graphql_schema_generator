@@ -19,6 +19,7 @@ export 'src/printer.dart'
         defaultDeprecationReason,
         printBlockString,
         printSchema,
+        printStringLiteral,
         printTypeRef,
         specifiedDirectiveNames,
         specifiedScalarNames;

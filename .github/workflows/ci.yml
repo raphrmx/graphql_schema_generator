@@ -35,9 +35,6 @@ jobs:
       - name: Install dependencies
         run: dart pub get
 
-      # Before the example is generated, so the `.g.dart` parts are not here to
-      # be judged: `json_serializable` formats those with its own `dart_style`,
-      # which is not always the one `dart format` ships.
       - name: Verify formatting
         run: dart format --output=none --set-exit-if-changed .
 
@@ -48,11 +45,7 @@ jobs:
         working-directory: example
 
       # The generator reads resolved sources, so the example has to compile
-      # before it runs, and its `part` files are not in the repository.
-      - name: Generate the example's JSON parts
-        run: dart run build_runner build --delete-conflicting-outputs
-        working-directory: example
-
+      # before it runs.
       - name: Generate the example's schema
         run: dart run graphql_schema_generator
         working-directory: example

@@ -223,4 +223,169 @@ void main() {
       expect(sdl, contains('union Owned = Product | Shop'));
     });
   });
+
+  group('printSchema, applied directives', () {
+    const audited = SdlAppliedDirective(name: 'audited');
+    const length = SdlAppliedDirective(
+      name: 'length',
+      arguments: [
+        SdlArgumentValue(name: 'min', value: '1'),
+        SdlArgumentValue(name: 'max', value: '120'),
+      ],
+    );
+
+    test('sits after the name of a type, before its block', () {
+      const schema = SdlSchema(
+        definitions: [
+          SdlObject(
+            name: 'Product',
+            directives: [audited],
+            fields: [SdlField(name: 'id', type: SdlNonNullType(_string))],
+          ),
+        ],
+      );
+
+      expect(printSchema(schema), contains('type Product @audited {'));
+    });
+
+    test('sits after what a type implements', () {
+      const schema = SdlSchema(
+        definitions: [
+          SdlObject(
+            name: 'Product',
+            directives: [audited],
+            interfaces: ['Node'],
+            fields: [SdlField(name: 'id', type: SdlNonNullType(_string))],
+          ),
+        ],
+      );
+
+      expect(
+        printSchema(schema),
+        contains('type Product implements Node @audited {'),
+      );
+    });
+
+    test('follows the type of a field, and the deprecation before it', () {
+      const schema = SdlSchema(
+        definitions: [
+          SdlObject(
+            name: 'Product',
+            fields: [
+              SdlField(
+                name: 'label',
+                type: SdlNonNullType(_string),
+                deprecationReason: 'Gone.',
+                directives: [length],
+              ),
+            ],
+          ),
+        ],
+      );
+
+      expect(
+        printSchema(schema),
+        contains(
+          '  label: String! @deprecated(reason: "Gone.") '
+          '@length(min: 1, max: 120)\n',
+        ),
+      );
+    });
+
+    test('follows the default value of an input field', () {
+      const schema = SdlSchema(
+        definitions: [
+          SdlInputObject(
+            name: 'ProductDraft',
+            fields: [
+              SdlField(
+                name: 'label',
+                type: SdlNonNullType(_string),
+                defaultValue: '"none"',
+                directives: [length],
+              ),
+            ],
+          ),
+        ],
+      );
+
+      expect(
+        printSchema(schema),
+        contains('  label: String! = "none" @length(min: 1, max: 120)\n'),
+      );
+    });
+
+    test('stays inside the argument list of a field', () {
+      const schema = SdlSchema(
+        definitions: [
+          SdlObject(
+            name: 'Query',
+            fields: [
+              SdlField(
+                name: 'search',
+                type: SdlNonNullType(_string),
+                arguments: [
+                  SdlArgument(
+                    name: 'text',
+                    type: SdlNonNullType(_string),
+                    directives: [length],
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      );
+
+      expect(
+        printSchema(schema),
+        contains('search(text: String! @length(min: 1, max: 120)): String!'),
+      );
+    });
+
+    test('follows an enum value, a union and a scalar', () {
+      const schema = SdlSchema(
+        definitions: [
+          SdlEnum(
+            name: 'Role',
+            directives: [audited],
+            values: [
+              SdlEnumValue(name: 'staff', directives: [audited]),
+            ],
+          ),
+          SdlUnion(name: 'Hit', directives: [audited], members: ['Product']),
+          SdlScalar(name: 'Money', directives: [audited]),
+        ],
+      );
+
+      final sdl = printSchema(schema);
+
+      expect(sdl, contains('enum Role @audited {'));
+      expect(sdl, contains('  staff @audited\n'));
+      expect(sdl, contains('union Hit @audited = Product'));
+      expect(sdl, contains('scalar Money @audited'));
+    });
+
+    test('keeps several directives in the order they were read', () {
+      const schema = SdlSchema(
+        definitions: [
+          SdlObject(
+            name: 'Product',
+            fields: [
+              SdlField(
+                name: 'label',
+                type: SdlNonNullType(_string),
+                directives: [audited, length],
+              ),
+            ],
+          ),
+        ],
+      );
+
+      expect(
+        printSchema(schema),
+        contains('  label: String! @audited @length(min: 1, max: 120)\n'),
+      );
+    });
+  });
 }

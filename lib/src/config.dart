@@ -33,9 +33,8 @@ class ConfigException implements Exception {
 ///     - lib/models/**.dart            # reaches them
 ///   exclude:
 ///     - lib/**.g.dart
-///   input_suffix: Input               # added to a class used as an argument
-///   strip_class_prefixes: []          # dropped from the front of a type name
-///   honour_json_key: true             # @JsonKey(name:) renames a field
+///   skip:                             # members left out of the schema
+///     - Product.internalCache
 ///   scalars:                          # Dart type -> GraphQL scalar
 ///     DateTime: DateTime
 /// ```
@@ -66,19 +65,12 @@ class GeneratorConfig {
   /// hold no model of their own, and reading them doubles every type.
   final List<String> exclude;
 
-  /// Added to the name of a class that is used as an argument, so the object
-  /// type and the input type of one Dart class can coexist. A class whose name
-  /// already ends with it keeps the name it has.
-  final String inputSuffix;
-
-  /// Prefixes dropped from the front of a generated type name. A prefix
-  /// belongs to whoever names their classes, so the default drops nothing.
-  final List<String> stripClassPrefixes;
-
-  /// Whether `@JsonKey(name:)` renames a field. The annotation says how the
-  /// field is already named on the wire, which is usually what the schema
-  /// should say too.
-  final bool honourJsonKey;
+  /// Members left out of the schema, written `ClassName.memberName`.
+  ///
+  /// The way to keep a field or an operation out without changing the Dart.
+  /// An inherited member can be named after the class that declares it or
+  /// after the one that exposes it.
+  final Set<String> skip;
 
   /// Dart types mapped to the GraphQL scalar that carries them, beyond the
   /// ones the language and the specification agree on.
@@ -92,9 +84,7 @@ class GeneratorConfig {
     this.subscriptionRoot = '',
     this.include = const [],
     this.exclude = const ['lib/**.g.dart'],
-    this.inputSuffix = 'Input',
-    this.stripClassPrefixes = const [],
-    this.honourJsonKey = true,
+    this.skip = const {},
     this.scalars = const {'DateTime': 'DateTime'},
   });
 
@@ -142,15 +132,7 @@ class GeneratorConfig {
       ),
       include: _stringList(section, 'include', fallback.include),
       exclude: _stringList(section, 'exclude', fallback.exclude),
-      inputSuffix: _string(section, 'input_suffix', fallback.inputSuffix),
-      stripClassPrefixes: _stringList(
-        section,
-        'strip_class_prefixes',
-        fallback.stripClassPrefixes,
-      ),
-      honourJsonKey: section['honour_json_key'] is bool
-          ? section['honour_json_key'] as bool
-          : fallback.honourJsonKey,
+      skip: _stringList(section, 'skip', fallback.skip.toList()).toSet(),
       scalars: _stringMap(section, 'scalars', fallback.scalars),
     );
   }

@@ -1,31 +1,55 @@
-"""
-What the catalogue can be asked.
+"""Reads of this type are written to the audit log."""
+directive @audited on OBJECT
 
-Every public method becomes a field of `Query`: the parameters become the
-arguments, the return type becomes the type of the field. Nothing here
-mentions GraphQL.
-"""
+"""The value holds between [min] and [max] characters."""
+directive @length(
+  """The shortest value the field accepts."""
+  min: Int! = 1
+
+  """The longest value the field accepts."""
+  max: Int!
+) on ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
+
+"""Only the listed roles read the field."""
+directive @restrictedTo(
+  """The roles allowed to read the field."""
+  roles: [Role!]!
+) on FIELD_DEFINITION
+
+"""What the catalogue can be asked."""
 type Query {
   """Reads one product, or null when the catalogue does not hold it."""
-  product(sku: String!): Product
+  product(sku: ID!): Product
 
   """The number of products the catalogue holds."""
   productCount: Int!
 
   """Lists the products matching [filter], newest first."""
   products(filter: ProductFilterInput!, limit: Int): [Product!]!
+
+  """Searches the whole catalogue, best match first."""
+  search(text: String! @length(min: 2, max: 80)): [SearchHit!]!
 }
 
 """What the catalogue can be told."""
 type Mutation {
   """Removes a product from the catalogue."""
-  deleteProduct(sku: String!): Boolean! @deprecated(reason: "Set availability to outOfStock instead.")
+  deleteProduct(sku: ID!): Boolean! @deprecated(reason: "Set availability to outOfStock instead.") @restrictedTo(roles: [staff])
 
   """Files an existing product under one more tag."""
-  tagProduct(sku: String!, tag: TagInput!): Product!
+  tagProduct(sku: ID!, tag: TagInput!): Product!
 
   """Creates a product, or replaces the one already carrying that SKU."""
   upsertProduct(draft: ProductDraftInput!): Product!
+}
+
+"""What the catalogue reports as it happens."""
+type Subscription {
+  """Emits the product every time that SKU is stored or replaced."""
+  productChanged(sku: ID!): Product!
+
+  """Emits the number of products whenever the catalogue grows or shrinks."""
+  productCountChanged: Int!
 }
 
 """Whether a product can be ordered right now."""
@@ -42,16 +66,22 @@ enum Availability {
 
 scalar DateTime
 
+"""Anything the catalogue can show on a page."""
+interface Listable {
+  """The name shown to a customer."""
+  label: String!
+}
+
 """A product on sale."""
-type Product {
+type Product implements Listable @audited {
   """The stock keeping unit. Unique across the catalogue."""
-  sku: String!
+  sku: ID!
 
   """The name shown to a customer."""
   label: String!
 
   """The price in cents, to keep the wire format free of floating point."""
-  price_cents: Int!
+  priceCents: Int!
 
   """Whether the product can be ordered right now."""
   availability: Availability!
@@ -64,15 +94,18 @@ type Product {
 
   """The old free-form category, kept until the last importer is migrated."""
   category: String @deprecated(reason: "Use tags instead.")
+
+  """The price in whole euros, rounded down."""
+  priceEuros: Int!
 }
 
 """The full state of a product, as the caller wants it stored."""
 input ProductDraftInput {
   """The stock keeping unit the product is stored under."""
-  sku: String!
+  sku: ID!
 
   """The name shown to a customer."""
-  label: String!
+  label: String! @length(min: 1, max: 120)
 
   """The price in cents."""
   priceCents: Int!
@@ -84,12 +117,7 @@ input ProductDraftInput {
   tags: [TagInput!]! = []
 }
 
-"""
-Narrows a product listing.
-
-Only ever passed to a method, so the generator emits it as an input type
-and never as an object type.
-"""
+"""Narrows a product listing."""
 input ProductFilterInput {
   """Keeps the products whose label contains this text."""
   labelContains: String
@@ -101,30 +129,53 @@ input ProductFilterInput {
   tagSlugs: [String!]! = []
 }
 
-"""
-A label a product can be filed under.
+"""A product the search turned up."""
+type ProductHit {
+  """The product itself."""
+  product: Product!
 
-Read back inside a product and written inside a draft, so the generator
-emits it twice: once as a type and once as an input.
-"""
-type Tag {
+  """How well the hit matches what was searched for, from 0 to 1."""
+  score: Float!
+}
+
+"""Who is asking the catalogue."""
+enum Role {
+  """Anyone browsing the shop."""
+  customer
+
+  """Someone working for the shop."""
+  staff
+}
+
+"""Anything a search can turn up."""
+union SearchHit = ProductHit | TagHit
+
+"""A label a product can be filed under."""
+type Tag implements Listable {
   """The machine-readable name, unique across the catalogue."""
   slug: String!
 
   """The name shown to a customer."""
-  display_label: String!
+  label: String!
 }
 
-"""
-A label a product can be filed under.
+"""A tag the search turned up."""
+type TagHit {
+  """The tag itself."""
+  tag: Tag!
 
-Read back inside a product and written inside a draft, so the generator
-emits it twice: once as a type and once as an input.
-"""
+  """How many products carry it."""
+  productCount: Int!
+
+  """How well the hit matches what was searched for, from 0 to 1."""
+  score: Float!
+}
+
+"""A label a product can be filed under."""
 input TagInput {
   """The machine-readable name, unique across the catalogue."""
   slug: String!
 
   """The name shown to a customer."""
-  display_label: String!
+  label: String!
 }

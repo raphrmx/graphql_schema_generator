@@ -1,25 +1,15 @@
-import 'package:json_annotation/json_annotation.dart';
-
-part 'tag.g.dart';
+import 'package:acme_catalogue/models/listable.dart';
 
 /// A label a product can be filed under.
-///
-/// Read back inside a product and written inside a draft, so the generator
-/// emits it twice: once as a type and once as an input.
-@JsonSerializable()
-class Tag {
+// Read back inside a product and written inside a draft, so the generator
+// emits it twice: once as a type and once as an input. A GraphQL input type
+// implements nothing, so `implements Listable` reaches the type alone.
+class Tag implements Listable {
   /// The machine-readable name, unique across the catalogue.
   final String slug;
 
-  /// The name shown to a customer.
-  @JsonKey(name: 'display_label')
+  @override
   final String label;
 
   const Tag({required this.slug, required this.label});
-
-  /// Reads a tag from its JSON form.
-  factory Tag.fromJson(Map<String, dynamic> json) => _$TagFromJson(json);
-
-  /// Writes the tag to its JSON form.
-  Map<String, dynamic> toJson() => _$TagToJson(this);
 }

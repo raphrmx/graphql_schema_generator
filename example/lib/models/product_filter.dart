@@ -1,9 +1,8 @@
 import 'package:acme_catalogue/models/availability.dart';
 
 /// Narrows a product listing.
-///
-/// Only ever passed to a method, so the generator emits it as an input type
-/// and never as an object type.
+// Only ever passed to a method, so the generator emits it as an input type
+// and never as an object type.
 class ProductFilter {
   /// Keeps the products whose label contains this text.
   final String? labelContains;

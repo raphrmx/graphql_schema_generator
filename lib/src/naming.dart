@@ -1,29 +1,24 @@
 /// How a Dart name becomes a GraphQL name.
 library;
 
+/// Added to the name of a class emitted as an input type.
+///
+/// Not a setting. A GraphQL schema cannot give an object type and an input
+/// type the same name, so a class read on both sides has to be emitted twice
+/// under two names, and one fixed rule is what lets a reader of the schema, or
+/// a generator going the other way, work out which Dart class it came from.
+const String inputSuffix = 'Input';
+
 /// The GraphQL type name of the Dart class [className].
 ///
-/// Drops the first prefix in [stripPrefixes] the name starts with, then adds
-/// [inputSuffix] when the class is being emitted as an input type. A class
-/// whose name already ends with the suffix keeps the name it has, so a
-/// `ProductInput` never becomes a `ProductInputInput`.
-String graphQLTypeName(
-  String className, {
-  required bool isInput,
-  List<String> stripPrefixes = const [],
-  String inputSuffix = 'Input',
-}) {
-  final prefix = stripPrefixes.firstWhere(
-    (p) =>
-        p.isNotEmpty && className.startsWith(p) && className.length > p.length,
-    orElse: () => '',
-  );
-  final base = prefix.isEmpty ? className : className.substring(prefix.length);
-
-  if (!isInput || inputSuffix.isEmpty || base.endsWith(inputSuffix)) {
-    return base;
-  }
-  return '$base$inputSuffix';
+/// The name is the one the class already carries, so the schema and the code
+/// call the same thing by the same name, and a generator reading the schema
+/// back gets the class it started from. In input position it gains
+/// [inputSuffix], unless it already ends with it, so a `ProductInput` never
+/// becomes a `ProductInputInput`.
+String graphQLTypeName(String className, {required bool isInput}) {
+  if (!isInput || className.endsWith(inputSuffix)) return className;
+  return '$className$inputSuffix';
 }
 
 /// The text of a Dart documentation comment, without its `///` markers.

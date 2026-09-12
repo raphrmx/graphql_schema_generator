@@ -48,6 +48,9 @@ Future<SdlSchema> generate(
 
 void _report(GeneratorConfig config, SdlSchema schema) {
   final counts = <String, int>{
+    'directive': schema.directives
+        .where((d) => !specifiedDirectiveNames.contains(d.name))
+        .length,
     'type': schema.definitions
         .whereType<SdlObject>()
         .where((d) => !d.isInterface)
@@ -59,7 +62,10 @@ void _report(GeneratorConfig config, SdlSchema schema) {
     'input': schema.definitions.whereType<SdlInputObject>().length,
     'enum': schema.definitions.whereType<SdlEnum>().length,
     'union': schema.definitions.whereType<SdlUnion>().length,
-    'scalar': schema.definitions.whereType<SdlScalar>().length,
+    'scalar': schema.definitions
+        .whereType<SdlScalar>()
+        .where((d) => !specifiedScalarNames.contains(d.name))
+        .length,
   };
 
   final width = counts.keys

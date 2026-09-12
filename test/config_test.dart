@@ -23,8 +23,8 @@ void main() {
       expect(config.packageName, 'acme');
       expect(config.outputPath, 'lib/schema.graphql');
       expect(config.configuredRoots, isEmpty);
-      expect(config.inputSuffix, 'Input');
       expect(config.exclude, ['lib/**.g.dart']);
+      expect(config.skip, isEmpty);
       expect(config.scalars, {'DateTime': 'DateTime'});
     });
 
@@ -56,10 +56,8 @@ graphql_schema_generator:
     - lib/models/**.dart
   exclude:
     - lib/**.freezed.dart
-  input_suffix: In
-  strip_class_prefixes:
-    - Bmc
-  honour_json_key: false
+  skip:
+    - Product.cacheKey
   scalars:
     DateTime: DateTime
     Uri: Url
@@ -68,9 +66,7 @@ graphql_schema_generator:
       expect(config.outputPath, 'build/schema.graphql');
       expect(config.include, ['lib/models/**.dart']);
       expect(config.exclude, ['lib/**.freezed.dart']);
-      expect(config.inputSuffix, 'In');
-      expect(config.stripClassPrefixes, ['Bmc']);
-      expect(config.honourJsonKey, isFalse);
+      expect(config.skip, {'Product.cacheKey'});
       expect(config.scalars, {'DateTime': 'DateTime', 'Uri': 'Url'});
     });
 
