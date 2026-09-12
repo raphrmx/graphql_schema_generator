@@ -1,0 +1,16 @@
+# ---- DART ----------------------------------------------------------------
+.dart_tool/
+.packages
+.pub-cache/
+build/
+
+# Omit committing pubspec.lock for library packages; see
+# https://dart.dev/guides/libraries/private-files#pubspeclock.
+pubspec.lock
+*.lock
+
+# Generated parts. The example's are written by build_runner on every CI run.
+**.g.dart
+
+.idea/
+.vscode/

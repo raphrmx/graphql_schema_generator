@@ -1,0 +1,80 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  # Catches SDK drift on a package that can go months without a commit: a new
+  # formatter default or a new lint shows up here rather than on the next release.
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        sdk: [stable, beta]
+
+    # The beta leg is an early warning, not a gate.
+    continue-on-error: ${{ matrix.sdk == 'beta' }}
+
+    name: ${{ matrix.sdk }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: ${{ matrix.sdk }}
+
+      - name: Install dependencies
+        run: dart pub get
+
+      # Before the example is generated, so the `.g.dart` parts are not here to
+      # be judged: `json_serializable` formats those with its own `dart_style`,
+      # which is not always the one `dart format` ships.
+      - name: Verify formatting
+        run: dart format --output=none --set-exit-if-changed .
+
+      # example/ is its own package, and `dart analyze` at the root descends
+      # into it.
+      - name: Install the example's dependencies
+        run: dart pub get
+        working-directory: example
+
+      # The generator reads resolved sources, so the example has to compile
+      # before it runs, and its `part` files are not in the repository.
+      - name: Generate the example's JSON parts
+        run: dart run build_runner build --delete-conflicting-outputs
+        working-directory: example
+
+      - name: Generate the example's schema
+        run: dart run graphql_schema_generator
+        working-directory: example
+
+      # The schema is committed, so generating it again is a no-op. A diff here
+      # means a change to what the generator emits landed without the example
+      # being refreshed to match it.
+      - name: The example is unchanged
+        run: git diff --exit-code -- example
+
+      # Language features are gated by the pubspec lower bound, so this also
+      # guards the declared Dart floor.
+      - name: Analyze
+        run: dart analyze --fatal-infos
+
+      # The suite covers the printing rules, the naming rules and the
+      # configuration parsing. It writes nothing outside the temporary
+      # directory.
+      - name: Run tests
+        run: dart test
+
+      # Fails on a packaging regression, such as a CHANGELOG that no longer
+      # mentions the version in pubspec.yaml.
+      - name: Validate the package
+        run: dart pub publish --dry-run

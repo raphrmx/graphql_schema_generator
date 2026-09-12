@@ -1,0 +1,25 @@
+name: acme_catalogue
+description: A worked example of graphql_schema_generator, over plain Dart models.
+version: 1.0.0
+publish_to: none
+
+environment:
+  sdk: ^3.9.0
+
+dependencies:
+  json_annotation: ^4.12.0
+
+dev_dependencies:
+  build_runner: ^2.4.13
+  graphql_schema_generator:
+    path: ../
+  json_serializable: ^6.8.0
+  lint: ^2.8.0
+
+# Read by graphql_schema_generator. Every entry is optional; these say how this
+# package departs from the tool's defaults.
+graphql_schema_generator:
+  output: lib/schema.graphql
+  roots:
+    query: lib/api/queries.dart#Queries
+    mutation: lib/api/mutations.dart#Mutations
