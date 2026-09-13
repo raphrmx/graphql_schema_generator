@@ -4,7 +4,7 @@
 
 [![Build](https://img.shields.io/github/actions/workflow/status/raphrmx/graphql_schema_generator/ci.yml?branch=main&label=build)](https://github.com/raphrmx/graphql_schema_generator/actions/workflows/ci.yml)
 [![Pub Version](https://img.shields.io/pub/v/graphql_schema_generator?color=blue)](https://pub.dev/packages/graphql_schema_generator)
-[![Maintainer](https://img.shields.io/badge/Maintainer-Raphael_Vrient-purple)](https://comapps.be)
+[![Maintainer](https://img.shields.io/badge/Maintainer-Raphael_Vrient-purple)](https://pub.dev/publishers/comapps.be/packages)
 [![License](https://img.shields.io/badge/Licence-MIT-blue)](/LICENSE)
 ![Maintenance](https://img.shields.io/badge/Maintained-yes-success)
 ![Platforms](https://img.shields.io/badge/Platforms-Android,_iOS,_macOS,_Windows,_Linux-22375C.svg)

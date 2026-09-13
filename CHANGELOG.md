@@ -1,3 +1,13 @@
+## 0.1.1
+
+- Corrects the Dart floor to 3.9, and accepts `analyzer` from 12.0.0. Every
+  `analyzer` 14.x requires Dart 3.11, so the `^3.8.0` of 0.1.0 promised an
+  install that could not resolve on 3.8, 3.9 or 3.10. Widening the constraint
+  makes the declared floor true and reaches two minor versions below what 14.x
+  allows. Below `analyzer` 12 the element model the reader walks does not
+  exist.
+- No change to what the generator reads or writes.
+
 ## 0.1.0
 
 First release.
