@@ -3,10 +3,12 @@ description: >-
   Generates a GraphQL SDL schema from plain Dart classes and enums. Reads the
   code, not a running server: no endpoint, no introspection query, and no
   credentials to hold.
-version: 0.1.1
-homepage: https://www.comapps.be
+version: 0.1.2
+homepage: https://packages.comapps.be/#graphql_schema_generator
 repository: https://github.com/raphrmx/graphql_schema_generator
 issue_tracker: https://github.com/raphrmx/graphql_schema_generator/issues
+funding:
+  - https://www.paypal.com/donate/?hosted_button_id=ZN6D382YQAV5N
 topics:
   - graphql
   - sdl

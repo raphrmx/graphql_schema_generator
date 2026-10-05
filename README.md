@@ -1,13 +1,11 @@
-<a alt="ComApps Logo" href="https://comapps.be" target="_blank" rel="noreferrer"><img src="https://www.comapps.be/wp-content/uploads/2026/09/CompleteLogoHorizontalMini.png" style="margin: 15px"></a>
-
 # GraphQL Schema Generator
 
+[![Pub Version](https://img.shields.io/pub/v/graphql_schema_generator?color=0175C2)](https://pub.dev/packages/graphql_schema_generator)
 [![Build](https://img.shields.io/github/actions/workflow/status/raphrmx/graphql_schema_generator/ci.yml?branch=main&label=build)](https://github.com/raphrmx/graphql_schema_generator/actions/workflows/ci.yml)
-[![Pub Version](https://img.shields.io/pub/v/graphql_schema_generator?color=blue)](https://pub.dev/packages/graphql_schema_generator)
-[![Maintainer](https://img.shields.io/badge/Maintainer-Raphael_Vrient-purple)](https://pub.dev/publishers/comapps.be/packages)
-[![License](https://img.shields.io/badge/Licence-MIT-blue)](/LICENSE)
-![Maintenance](https://img.shields.io/badge/Maintained-yes-success)
-![Platforms](https://img.shields.io/badge/Platforms-Android,_iOS,_macOS,_Windows,_Linux-22375C.svg)
+![Maintainer](https://img.shields.io/badge/Maintainer-Raphael_Vrient-733d90)
+[![Licence](https://img.shields.io/badge/Licence-MIT-8C6A3F)](LICENSE)
+![Platforms](https://img.shields.io/badge/Platforms-Android,_iOS,_macOS,_Windows,_Linux,_Web-22375C.svg)
+[![Donate with PayPal](https://img.shields.io/badge/Donate-PayPal-00457C?logo=paypal&logoColor=white)](https://www.paypal.com/donate/?hosted_button_id=ZN6D382YQAV5N)
 
 Writes the `.graphql` schema your Dart classes already describe. It reads the
 sources, so there is no server to start and no introspection query to send.
@@ -276,3 +274,19 @@ diff. Read `example/lib/models` and `example/lib/api`, then
 ## Licence
 
 MIT. See [LICENSE](LICENSE).
+
+## More from COMAPPS
+
+GraphQL for Dart:
+
+| Package | What it does |
+| --- | --- |
+| [graphql_parser3](https://pub.dev/packages/graphql_parser3) | Parses queries and schemas into an AST with source spans. |
+| [graphql_schema3](https://pub.dev/packages/graphql_schema3) | The GraphQL type system, with validation and coercion. |
+| [graphql_server3](https://pub.dev/packages/graphql_server3) | Executes queries, mutations and subscriptions. |
+| [graphql_generator3](https://pub.dev/packages/graphql_generator3) | Generates graphql_schema3 types from annotated classes. |
+| [graphql_schema_annotation](https://pub.dev/packages/graphql_schema_annotation) | Directives, interfaces and scalars for graphql_schema_generator. |
+| [graphql_openapi_codegen](https://pub.dev/packages/graphql_openapi_codegen) | Generates a Dart server and an OpenAPI document from a schema. |
+
+Every package COMAPPS publishes is listed at
+[packages.comapps.be](https://packages.comapps.be).

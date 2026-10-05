@@ -1,3 +1,19 @@
+## 0.1.2
+
+- The badge row carries a PayPal donation badge, `funding` points pub.dev
+  at the same donation page, and the README ends on the other packages
+  COMAPPS publishes. Nothing about the library changed.
+- The README carries its build badge again, pointed at the branch the repository
+  actually builds from.
+- The COMAPPS logo no longer opens the README. pub.dev names the verified
+  publisher on its page of its own accord, and the logo stood above the title as
+  a link away from the package.
+- `homepage` points at the package's card on packages.comapps.be, which lists every
+  package published under COMAPPS.
+- The README badge row carries the maintainer again, and a licence badge in a
+  colour of its own rather than the grey shields puts in every label. Nothing
+  about the library changed.
+
 ## 0.1.1
 
 - Corrects the Dart floor to 3.9, and accepts `analyzer` from 12.0.0. Every
